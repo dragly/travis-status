@@ -50,6 +50,7 @@ ApplicationWindow {
             placeholderText: "Repository name, e.g. CINPLA/exdir"
             Keys.onReturnPressed: {
                 root.repositories = root.repositories.concat([{name: text}])
+                text = ""
             }
         }
     }
