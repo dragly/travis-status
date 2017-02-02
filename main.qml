@@ -87,6 +87,7 @@ ApplicationWindow {
                     }
                     var map = {
                         "passed": "#4EBA6F",
+                        "created": "#F0C419",
                         "started": "#F0C419",
                         "errored": "#454545",
                         "failed": "#F15A5A"
