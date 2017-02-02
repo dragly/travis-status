@@ -97,6 +97,25 @@ ApplicationWindow {
                 Layout.fillHeight: true
                 Layout.fillWidth: true
 
+                Component.onCompleted: {
+                    refresh()
+                }
+
+                function refresh() {
+                    var req = new XMLHttpRequest()
+                    req.onreadystatechange = function() {
+                        if(req.readyState !== XMLHttpRequest.DONE) {
+                            return
+                        }
+                        console.log(modelData.name, req.responseText)
+                        result = JSON.parse(req.responseText)
+
+                    }
+                    req.open("GET", "https://api.travis-ci.org/repos/" + modelData.name)
+                    req.setRequestHeader("Accept", "application/vnd.travis-ci.2+json")
+                    req.send()
+                }
+
                 MouseArea {
                     id: mouseArea
                     anchors.fill: parent
@@ -147,20 +166,12 @@ ApplicationWindow {
                     }
                 }
 
-                Component.onCompleted: {
-                    var req = new XMLHttpRequest()
-                    req.onreadystatechange = function() {
-                        if(req.readyState !== XMLHttpRequest.DONE) {
-                            return
-                        }
-                        console.log(modelData.name, req.responseText)
-                        result = JSON.parse(req.responseText)
-
-                    }
-                    req.open("GET", "https://api.travis-ci.org/repos/" + modelData.name)
-                    req.setRequestHeader("Accept", "application/vnd.travis-ci.2+json")
-                    req.send()
+                Timer {
+                    interval: 60000
+                    repeat: true
+                    onTriggered: refresh()
                 }
+
             }
         }
     }
