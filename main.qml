@@ -2,6 +2,9 @@ import QtQuick 2.7
 import QtQuick.Controls 2.0
 import QtQuick.Layouts 1.0
 import Qt.labs.settings 1.0
+import QtGraphicalEffects 1.0
+
+import "md5.js" as MD5
 
 ApplicationWindow {
     id: root
@@ -36,21 +39,52 @@ ApplicationWindow {
     Rectangle {
         anchors.fill: parent
         color: "#121212"
+    }
 
     Row {
         id: row
+
+        property bool revealed: false
+
         anchors {
             left: parent.left
             top: parent.top
+            topMargin: revealed ? anchors.margins : -height
             margins: 16
+        }
+
+        spacing: 8
+
+        function add() {
+            root.repositories = root.repositories.concat([{name: text}])
+            text = ""
+        }
+
+        Label {
+            anchors.baseline: textField.baseline
+            color: "white"
+            text: "Add another repository:"
         }
 
         TextField {
             id: textField
-            placeholderText: "Repository name, e.g. CINPLA/exdir"
+            placeholderText: "e.g. CINPLA/exdir"
             Keys.onReturnPressed: {
-                root.repositories = root.repositories.concat([{name: text}])
-                text = ""
+                row.add()
+            }
+        }
+
+        Button {
+            text: "Add"
+            onClicked: {
+                row.add()
+            }
+        }
+
+        Behavior on anchors.topMargin {
+            NumberAnimation {
+                duration: 600
+                easing.type: Easing.InOutQuad
             }
         }
     }
@@ -69,114 +103,38 @@ ApplicationWindow {
 
         Repeater {
             model: repositories
-            Rectangle {
+            RepositoryDelegate {
                 id: background
-                property var result: {
-                    return {
-                        "repo": {
-                            "last_build_state": "unknown"
-                        }
-                    }
-                }
-                property bool valid: result["repo"] ? true : false
-
-                color: {
-                    // extra #2D95BF
-                    var unknown = "#955BA5"
-                    if(!valid) {
-                        return unknown
-                    }
-                    var map = {
-                        "passed": "#4EBA6F",
-                        "created": "#F0C419",
-                        "started": "#F0C419",
-                        "errored": "#454545",
-                        "failed": "#F15A5A"
-                    }
-                    return map[result["repo"]["last_build_state"]] || unknown
-                }
-
                 Layout.fillHeight: true
                 Layout.fillWidth: true
-
-                Component.onCompleted: {
-                    refresh()
-                }
-
-                function refresh() {
-                    var req = new XMLHttpRequest()
-                    req.onreadystatechange = function() {
-                        if(req.readyState !== XMLHttpRequest.DONE) {
-                            return
-                        }
-                        console.log(modelData.name, req.responseText)
-                        result = JSON.parse(req.responseText)
-
-                    }
-                    req.open("GET", "https://api.travis-ci.org/repos/" + modelData.name)
-                    req.setRequestHeader("Accept", "application/vnd.travis-ci.2+json")
-                    req.send()
-                }
-
-                MouseArea {
-                    id: mouseArea
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: {
-                        Qt.openUrlExternally("https://travis-ci.org/" + modelData.name)
-                    }
-                }
-
-                Text {
-                    anchors {
-                        fill: parent
-                        margins: 8
-                    }
-
-                    horizontalAlignment: Text.AlignHCenter
-                    verticalAlignment: Text.AlignVCenter
-                    font.pixelSize: Math.min(width, height) * 0.20
-                    wrapMode: Text.WrapAtWordBoundaryOrAnywhere
-                    color: "white"
-                    text: modelData.name.split("/").join("\n")
-                }
-
-                Text {
-                    anchors {
-                        right: parent.right
-                        top: parent.top
-                        margins: 8
-                    }
-                    font.pixelSize: background.height * 0.10
-                    visible: mouseArea.containsMouse
-                    color: "red"
-                    text: "x"
-                    MouseArea {
-                        anchors.fill: parent
-                        onClicked: {
-                            for(var i in root.repositories) {
-                                var repo = root.repositories[i]
-                                if(repo.name === modelData.name) {
-                                    var newRepositories = root.repositories
-                                    newRepositories.splice(i, 1)
-                                    root.repositories = newRepositories
-                                    return
-                                }
-                            }
-                        }
-                    }
-                }
-
-                Timer {
-                    interval: 60000
-                    repeat: true
-                    running: true
-                    onTriggered: refresh()
-                }
-
             }
         }
     }
+
+    MouseArea {
+        id: topMouseArea
+        anchors {
+            top: parent.top
+            left: parent.left
+            right: parent.right
+        }
+        height: row.height * 2
+        hoverEnabled: true
+        acceptedButtons: Qt.NoButton
+        onEntered: {
+            hideTimer.stop()
+            row.revealed = true
+        }
+        onExited: {
+            hideTimer.restart()
+        }
+    }
+
+    Timer {
+        id: hideTimer
+        interval: 1000
+        onTriggered: {
+            row.revealed = false
+        }
     }
 }

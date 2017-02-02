@@ -2,5 +2,7 @@
     <qresource prefix="/">
         <file>main.qml</file>
         <file>qtquickcontrols2.conf</file>
+        <file>md5.js</file>
+        <file>RepositoryDelegate.qml</file>
     </qresource>
 </RCC>
