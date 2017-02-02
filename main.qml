@@ -169,6 +169,7 @@ ApplicationWindow {
                 Timer {
                     interval: 60000
                     repeat: true
+                    running: true
                     onTriggered: refresh()
                 }
 
