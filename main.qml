@@ -118,7 +118,7 @@ ApplicationWindow {
             left: parent.left
             right: parent.right
         }
-        height: row.height * 2
+        height: row.height
         hoverEnabled: true
         acceptedButtons: Qt.NoButton
         onEntered: {

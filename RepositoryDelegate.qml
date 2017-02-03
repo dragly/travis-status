@@ -1,8 +1,8 @@
 import QtQuick 2.7
 import QtQuick.Controls 2.0
 import QtQuick.Layouts 1.0
+import QtQuick.Particles 2.0
 import Qt.labs.settings 1.0
-import QtGraphicalEffects 1.0
 
 import "md5.js" as MD5
 
@@ -14,11 +14,13 @@ Item {
     property string buildState: "unknown"
     property string authorEmail: "@"
     property string commitMessage: ""
+
+    clip: true
     
     Component.onCompleted: {
         refresh()
     }
-    
+
     function refresh() {
         if(modelData.name === "test/test") {
             buildState = "started"
@@ -163,13 +165,13 @@ Item {
             margins: 16
         }
         wrapMode: Text.WrapAtWordBoundaryOrAnywhere
-        font.pixelSize: scalar * 0.4
+        font.pixelSize: scalar * 0.46
         horizontalAlignment: Text.AlignHCenter
-        color: "#bcbcbc"
+        color: "#efefef"
         visible: buildState === "errored" || buildState === "failed"
         
         //                    text: authorEmail.split("@")[0]
-        text: '"' + commitMessage + '"'
+        text: authorEmail + ': "' + commitMessage + '"'
     }
     
     Text {
