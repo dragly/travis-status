@@ -1,5 +1,5 @@
 import QtQuick 2.7
-import QtQuick.Controls 2.0
+import QtQuick.Controls 2.1
 import QtQuick.Layouts 1.0
 import Qt.labs.settings 1.0
 import QtGraphicalEffects 1.0
@@ -67,7 +67,7 @@ ApplicationWindow {
             margins: 16
         }
 
-        spacing: 8
+        spacing: 16
 
         function add() {
             var repo = {name: textField.text, private: privateCheckbox.checked}
@@ -111,6 +111,11 @@ ApplicationWindow {
             }
         }
 
+        Label {
+            anchors.baseline: textField.baseline
+            text: "Travis token:"
+        }
+
         TextField {
             id: tokenText
             text: root.travisToken
@@ -123,6 +128,13 @@ ApplicationWindow {
                 target: tokenText
                 property: "text"
                 value: root.travisToken
+            }
+        }
+
+        Button {
+            text: "Generate token"
+            onClicked: {
+                tokenDialog.open()
             }
         }
 
@@ -172,6 +184,20 @@ ApplicationWindow {
         }
         onExited: {
             hideTimer.restart()
+        }
+    }
+
+    Dialog {
+        id: tokenDialog
+        TextArea {
+            anchors.fill: parent
+            selectByMouse: true
+            text: "Generate a GitHub token with access to private repos.\n" +
+                  "Run the following command:\n\n" +
+                  "curl -H 'Content-Type: application/json' -d " +
+                  "'{\"github_token\":\"<your token>\"}' -H 'User-Agent: Travis/1.0' " +
+                  "https://api.travis-ci.com/auth/github\n\n" +
+                  "This results in something like '{\"access_token\": \"...\"}'. Copy and paste only the resulting token here."
         }
     }
 

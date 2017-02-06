@@ -31,11 +31,10 @@ Item {
         if(modelData.private) {
             endpoint = "https://api.travis-ci.com/"
         }
-        if(!Travis.token) {
+        if(modelData.private && !Travis.token) {
             quickRefreshTimer.restart()
             return
         }
-        
         var req = new XMLHttpRequest()
         req.onreadystatechange = function() {
             if(req.readyState !== XMLHttpRequest.DONE) {
