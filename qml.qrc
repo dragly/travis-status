@@ -4,5 +4,7 @@
         <file>qtquickcontrols2.conf</file>
         <file>md5.js</file>
         <file>RepositoryDelegate.qml</file>
+        <file>Travis.qml</file>
+        <file>qmldir</file>
     </qresource>
 </RCC>

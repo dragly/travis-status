@@ -5,6 +5,7 @@ import QtQuick.Particles 2.0
 import Qt.labs.settings 1.0
 
 import "md5.js" as MD5
+import "."
 
 Item {
     id: background
@@ -26,6 +27,14 @@ Item {
             buildState = "started"
             return
         }
+        var endpoint = "https://api.travis-ci.org/"
+        if(modelData.private) {
+            endpoint = "https://api.travis-ci.com/"
+        }
+        if(!Travis.token) {
+            quickRefreshTimer.restart()
+            return
+        }
         
         var req = new XMLHttpRequest()
         req.onreadystatechange = function() {
@@ -34,8 +43,7 @@ Item {
             }
             console.log(modelData.name, req.responseText)
             var result = JSON.parse(req.responseText)
-            if(result["repo"]) {
-                
+            if(result["repo"]) {                
                 var req2 = new XMLHttpRequest()
                 req2.onreadystatechange = function() {
                     if(req2.readyState !== XMLHttpRequest.DONE) {
@@ -47,16 +55,21 @@ Item {
                     authorEmail = build["commit"]["author_email"]
                     commitMessage = build["commit"]["message"]
                 }
-                var url2 = "https://api.travis-ci.org/builds/" + result["repo"]["last_build_id"]
+                var url2 = endpoint + "builds/" + result["repo"]["last_build_id"]
                 console.log("Getting", url2)
                 req2.open("GET", url2)
                 req2.setRequestHeader("Accept", "application/vnd.travis-ci.2+json")
+                if(modelData.private) {
+                    req2.setRequestHeader("Authorization", "token " + Travis.token)
+                }
                 req2.send()
             }
-            
         }
-        req.open("GET", "https://api.travis-ci.org/repos/" + modelData.name)
+        req.open("GET", endpoint + "repos/" + modelData.name)
         req.setRequestHeader("Accept", "application/vnd.travis-ci.2+json")
+        if(modelData.private) {
+            req.setRequestHeader("Authorization", "token " + Travis.token)
+        }
         req.send()
     }
     
@@ -220,5 +233,12 @@ Item {
         running: true
         onTriggered: refresh()
     }
-    
+
+    Timer {
+        id: quickRefreshTimer
+        repeat: false
+        running: false
+        interval: 1 * 1000
+        onTriggered: refresh()
+    }
 }

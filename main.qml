@@ -5,6 +5,7 @@ import Qt.labs.settings 1.0
 import QtGraphicalEffects 1.0
 
 import "md5.js" as MD5
+import "."
 
 ApplicationWindow {
     id: root
@@ -14,26 +15,39 @@ ApplicationWindow {
     height: 1200
     title: qsTr("Travis Status")
 
+    property string travisToken
     property var repositories: [
-        {name: "CINPLA/exdir"}
+        {name: "CINPLA/exdir", private: false}
     ]
 
     property string repositoriesString
+    property bool avoidLoop: false
+
+    onTravisTokenChanged: {
+        Travis.token = travisToken
+    }
 
     Settings {
         property alias repositories: root.repositoriesString
+        property alias token: root.travisToken
     }
 
-    Binding {
-        target: root
-        property: "repositories"
-        value: JSON.parse(repositoriesString)
+    onRepositoriesChanged: {
+        if(avoidLoop) {
+            return
+        }
+        avoidLoop = true
+        repositoriesString = JSON.stringify(repositories)
+        avoidLoop = false
     }
 
-    Binding {
-        target: root
-        property: "repositoriesString"
-        value: JSON.stringify(repositories)
+    onRepositoriesStringChanged: {
+        if(avoidLoop) {
+            return
+        }
+        avoidLoop = true
+        repositories = JSON.parse(repositoriesString)
+        avoidLoop = false
     }
 
     Rectangle {
@@ -56,8 +70,9 @@ ApplicationWindow {
         spacing: 8
 
         function add() {
-            root.repositories = root.repositories.concat([{name: text}])
-            text = ""
+            var repo = {name: textField.text, private: privateCheckbox.checked}
+            root.repositories = root.repositories.concat([repo])
+            textField.text = ""
         }
 
         Label {
@@ -69,6 +84,21 @@ ApplicationWindow {
         TextField {
             id: textField
             placeholderText: "e.g. CINPLA/exdir"
+            onFocusChanged: {
+                if(!focus) {
+                    hideTimer.restart()
+                }
+            }
+
+            Keys.onReturnPressed: {
+                row.add()
+            }
+        }
+
+        CheckBox {
+            id: privateCheckbox
+            text: "Private"
+
             Keys.onReturnPressed: {
                 row.add()
             }
@@ -78,6 +108,21 @@ ApplicationWindow {
             text: "Add"
             onClicked: {
                 row.add()
+            }
+        }
+
+        TextField {
+            id: tokenText
+            text: root.travisToken
+            Binding {
+                target: root
+                property: "travisToken"
+                value: tokenText.text
+            }
+            Binding {
+                target: tokenText
+                property: "text"
+                value: root.travisToken
             }
         }
 
@@ -134,6 +179,9 @@ ApplicationWindow {
         id: hideTimer
         interval: 1000
         onTriggered: {
+            if(textField.activeFocus || topMouseArea.containsMouse) {
+                return
+            }
             row.revealed = false
         }
     }
