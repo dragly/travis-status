@@ -35,7 +35,6 @@ Item {
             console.log(modelData.name, req.responseText)
             var result = JSON.parse(req.responseText)
             if(result["repo"]) {
-                buildState = result["repo"]["last_build_state"]
                 
                 var req2 = new XMLHttpRequest()
                 req2.onreadystatechange = function() {
@@ -44,6 +43,7 @@ Item {
                     }
                     console.log(modelData.name, req2.responseText)
                     var build = JSON.parse(req2.responseText)
+                    buildState = build["build"]["state"]
                     authorEmail = build["commit"]["author_email"]
                     commitMessage = build["commit"]["message"]
                 }
