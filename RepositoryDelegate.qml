@@ -42,29 +42,15 @@ Item {
             }
             console.log(modelData.name, req.responseText)
             var result = JSON.parse(req.responseText)
-            if(result["repo"]) {                
-                var req2 = new XMLHttpRequest()
-                req2.onreadystatechange = function() {
-                    if(req2.readyState !== XMLHttpRequest.DONE) {
-                        return
-                    }
-                    console.log(modelData.name, req2.responseText)
-                    var build = JSON.parse(req2.responseText)
-                    buildState = build["build"]["state"]
-                    authorEmail = build["commit"]["author_email"]
-                    commitMessage = build["commit"]["message"]
-                }
-                var url2 = endpoint + "builds/" + result["repo"]["last_build_id"]
-                console.log("Getting", url2)
-                req2.open("GET", url2)
-                req2.setRequestHeader("Accept", "application/vnd.travis-ci.2+json")
-                if(modelData.private) {
-                    req2.setRequestHeader("Authorization", "token " + Travis.token)
-                }
-                req2.send()
+            if(!result["branch"] || !result["commit"]) {
+                buildState = "unknown"
+                console.log("Response missing branch or commit!")
             }
+            buildState = result["branch"]["state"]
+            authorEmail = result["commit"]["author_email"]
+            commitMessage = result["commit"]["message"]
         }
-        req.open("GET", endpoint + "repos/" + modelData.name)
+        req.open("GET", endpoint + "repos/" + modelData.name + "/branches/" + modelData.branch)
         req.setRequestHeader("Accept", "application/vnd.travis-ci.2+json")
         if(modelData.private) {
             req.setRequestHeader("Authorization", "token " + Travis.token)
@@ -152,7 +138,7 @@ Item {
         
         text: modelData.name.split("/")[0]
     }
-    
+
     Text {
         id: repositoryNameText
         anchors {
@@ -165,13 +151,29 @@ Item {
         font.pixelSize: scalar
         wrapMode: Text.WrapAtWordBoundaryOrAnywhere
         color: "#efefef"
-        
+
         text: modelData.name.split("/")[1]
+    }
+
+    Text {
+        id: branchNameText
+        anchors {
+            top: repositoryNameText.bottom
+            left: parent.left
+            right: parent.right
+            margins: 16
+        }
+        horizontalAlignment: Text.AlignHCenter
+        font.pixelSize: scalar * 0.4
+        wrapMode: Text.WrapAtWordBoundaryOrAnywhere
+        color: "#cbcbcb"
+
+        text: modelData.branch.split("/")[1]
     }
     
     Text {
         anchors {
-            top: repositoryNameText.bottom
+            top: branchNameText.bottom
             left: parent.left
             right: parent.right
             margins: 16

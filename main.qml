@@ -70,20 +70,45 @@ ApplicationWindow {
         spacing: 16
 
         function add() {
-            var repo = {name: textField.text, private: privateCheckbox.checked}
+            var repo = {
+                name: repoTextField.text,
+                branch: branchTextField.text,
+                private: privateCheckbox.checked
+            }
             root.repositories = root.repositories.concat([repo])
-            textField.text = ""
+            repoTextField.text = ""
+            branchTextField.text = ""
         }
 
         Label {
-            anchors.baseline: textField.baseline
+            anchors.baseline: repoTextField.baseline
             color: "white"
-            text: "Add another repository:"
+            text: "Repo:"
         }
 
         TextField {
-            id: textField
+            id: repoTextField
             placeholderText: "e.g. CINPLA/exdir"
+            onFocusChanged: {
+                if(!focus) {
+                    hideTimer.restart()
+                }
+            }
+
+            Keys.onReturnPressed: {
+                row.add()
+            }
+        }
+
+        Label {
+            anchors.baseline: repoTextField.baseline
+            color: "white"
+            text: "Branch:"
+        }
+
+        TextField {
+            id: branchTextField
+            placeholderText: "e.g. dev"
             onFocusChanged: {
                 if(!focus) {
                     hideTimer.restart()
@@ -112,7 +137,7 @@ ApplicationWindow {
         }
 
         Label {
-            anchors.baseline: textField.baseline
+            anchors.baseline: repoTextField.baseline
             text: "Travis token:"
         }
 
@@ -205,7 +230,7 @@ ApplicationWindow {
         id: hideTimer
         interval: 1000
         onTriggered: {
-            if(textField.activeFocus || topMouseArea.containsMouse) {
+            if(repoTextField.activeFocus || topMouseArea.containsMouse) {
                 return
             }
             row.revealed = false
