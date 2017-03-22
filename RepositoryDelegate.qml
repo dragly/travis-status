@@ -129,86 +129,106 @@ Item {
                 right: parent.right
                 margins: parent.width * 0.01
             }
-            wrapMode: Text.WrapAtWordBoundaryOrAnywhere
+            fontSizeMode: Text.Fit
             horizontalAlignment: Text.AlignHCenter
             color: "white"
             font.pixelSize: parent.height * 0.05
-            text: "Hvordan syns du det gikk?"
+            text: "Hvordan syns du at det gikk?"
         }
     }
-    
-    Text {
-        id: organizationNameText
-        anchors {
-            bottom: repositoryNameText.top
-            left: parent.left
-            right: parent.right
-            margins: 16
+
+
+    ColumnLayout {
+        anchors.fill: parent
+        Item {
+            Layout.fillHeight: true
+            Layout.fillWidth: true
+            Text {
+                anchors {
+                    fill: parent
+                    margins: scalar * 0.2
+                }
+                horizontalAlignment: Text.AlignHCenter
+                verticalAlignment: Text.AlignVCenter
+                font.pixelSize: scalar * 0.6
+                fontSizeMode: Text.Fit
+//                wrapMode: Text.WrapAtWordBoundaryOrAnywhere
+                color: "#dcdcdc"
+
+                text: modelData.name.split("/")[0]
+            }
         }
-        horizontalAlignment: Text.AlignHCenter
-        font.pixelSize: scalar * 0.6
-        wrapMode: Text.WrapAtWordBoundaryOrAnywhere
-        color: "#dcdcdc"
-        
-        text: modelData.name.split("/")[0]
+
+        Item {
+            Layout.fillHeight: true
+            Layout.fillWidth: true
+            Text {
+                anchors {
+                    fill: parent
+                    margins: scalar * 0.2
+                }
+
+                horizontalAlignment: Text.AlignHCenter
+                verticalAlignment: Text.AlignVCenter
+                font.pixelSize: scalar
+                fontSizeMode: Text.Fit
+//                wrapMode: Text.WrapAtWordBoundaryOrAnywhere
+                color: "#efefef"
+
+                text: modelData.name.split("/")[1]
+            }
+        }
+
+        Item {
+            Layout.fillHeight: true
+            Layout.fillWidth: true
+            Text {
+                anchors {
+                    fill: parent
+                    margins: scalar * 0.2
+                }
+                horizontalAlignment: Text.AlignHCenter
+                verticalAlignment: Text.AlignVCenter
+                font.pixelSize: scalar * 0.4
+                fontSizeMode: Text.Fit
+//                wrapMode: Text.WrapAtWordBoundaryOrAnywhere
+                color: "#cbcbcb"
+
+                text: modelData.branch
+            }
+        }
+
+        Item {
+            Layout.fillHeight: buildState === "errored" || buildState === "failed"
+            Layout.fillWidth: true
+            Text {
+                anchors {
+                    fill: parent
+                    margins: scalar * 0.2
+                }
+                wrapMode: Text.WrapAtWordBoundaryOrAnywhere
+                font.pixelSize: scalar * 0.46
+                fontSizeMode: Text.Fit
+                horizontalAlignment: Text.AlignHCenter
+                verticalAlignment: Text.AlignVCenter
+                color: "#efefef"
+                visible: buildState === "errored" || buildState === "failed"
+
+                //                    text: authorEmail.split("@")[0]
+                text: authorEmail + ': "' + commitMessage + '"'
+            }
+        }
     }
 
     Text {
-        id: repositoryNameText
         anchors {
-            verticalCenter: parent.verticalCenter
-            left: parent.left
-            right: parent.right
-            margins: 16
-        }
-        horizontalAlignment: Text.AlignHCenter
-        font.pixelSize: scalar
-        wrapMode: Text.WrapAtWordBoundaryOrAnywhere
-        color: "#efefef"
-
-        text: modelData.name.split("/")[1]
-    }
-
-    Text {
-        id: branchNameText
-        anchors {
-            top: repositoryNameText.bottom
-            left: parent.left
-            right: parent.right
-            margins: 16
-        }
-        horizontalAlignment: Text.AlignHCenter
-        font.pixelSize: scalar * 0.4
-        wrapMode: Text.WrapAtWordBoundaryOrAnywhere
-        color: "#cbcbcb"
-
-        text: modelData.branch.split("/")[1]
-    }
-    
-    Text {
-        anchors {
-            top: branchNameText.bottom
-            left: parent.left
-            right: parent.right
-            margins: 16
-        }
-        wrapMode: Text.WrapAtWordBoundaryOrAnywhere
-        font.pixelSize: scalar * 0.46
-        horizontalAlignment: Text.AlignHCenter
-        color: "#efefef"
-        visible: buildState === "errored" || buildState === "failed"
-        
-        //                    text: authorEmail.split("@")[0]
-        text: authorEmail + ': "' + commitMessage + '"'
-    }
-    
-    Text {
-        anchors {
-            right: parent.right
             top: parent.top
+            right: parent.right
             margins: 8
         }
+
         font.pixelSize: background.height * 0.10
+        fontSizeMode: Text.Fit
         visible: mouseArea.containsMouse
         color: "red"
         text: "x"
