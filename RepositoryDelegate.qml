@@ -103,23 +103,37 @@ Item {
             id: facepalmAnimation
             NumberAnimation {
                 from: 0
-                to: 0.2
+                to: 0.5
                 target: facepalmImage
                 property: "opacity"
                 duration: 2000
                 easing.type: Easing.InOutQuad
             }
             PauseAnimation {
-                duration: 2000
+                duration: 4000
             }
             NumberAnimation {
-                from: 0.2
+                from: 0.5
                 to: 0
                 target: facepalmImage
                 property: "opacity"
                 duration: 2000
                 easing.type: Easing.InOutQuad
             }
+        }
+
+        Text {
+            anchors {
+                top: parent.top
+                left: parent.left
+                right: parent.right
+                margins: parent.width * 0.01
+            }
+            wrapMode: Text.WrapAtWordBoundaryOrAnywhere
+            horizontalAlignment: Text.AlignHCenter
+            color: "white"
+            font.pixelSize: parent.height * 0.05
+            text: "Hvordan syns du det gikk?"
         }
     }
     
