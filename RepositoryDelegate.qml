@@ -409,7 +409,7 @@ Item {
 
     Timer {
         running: milestones.length > 0
-        interval: 10 * 1000 + 1000 * Math.random()
+        interval: 20 * 1000 + 1000 * Math.random()
         repeat: true
         onTriggered: toggleState()
     }
