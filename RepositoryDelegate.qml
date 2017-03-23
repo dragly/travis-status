@@ -37,6 +37,12 @@ Item {
                 return
             }
             result.sort(function(a, b) {
+                if(a.due_on === null) {
+                    return 1
+                }
+                if(b.due_on === null) {
+                    return -1
+                }
                 return a.due_on > b.due_on ? 1 : -1
             })
             milestones = result
@@ -71,6 +77,7 @@ Item {
             if(!result["branch"] || !result["commit"]) {
                 buildState = "unknown"
                 console.log("Response missing branch or commit!")
+                return
             }
             buildState = result["branch"]["state"]
             authorEmail = result["commit"]["author_email"]
@@ -92,10 +99,11 @@ Item {
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
         onClicked: {
-            Qt.openUrlExternally("https://travis-ci.org/" + modelData.name)
+//            Qt.openUrlExternally("https://travis-ci.org/" + modelData.name)
+            toggleState()
         }
     }
-    
+
     Rectangle {
         id: backgroundRectangle
         anchors.fill: parent
@@ -111,7 +119,7 @@ Item {
             }
             return map[buildState] || unknown
         }
-        
+
         Behavior on color {
             ColorAnimation {
                 duration: 800
@@ -119,7 +127,7 @@ Item {
             }
         }
     }
-    
+
     Image {
         id: facepalmImage
         anchors.fill: parent
@@ -167,6 +175,7 @@ Item {
 
 
     ColumnLayout {
+        id: mainLayout
         anchors.fill: parent
         Item {
             Layout.fillHeight: true
@@ -246,63 +255,121 @@ Item {
                 text: authorEmail + ': "' + commitMessage + '"'
             }
         }
+    }
+
+    ColumnLayout {
+        id: secondaryLayout
+        anchors.fill: parent
+        spacing: 0
+        opacity: 0
 
         Item {
             Layout.fillHeight: true
             Layout.fillWidth: true
-            ColumnLayout {
-                anchors.fill: parent
-                spacing: 0
-                Repeater {
-                    model: milestones
-                    Rectangle {
-                        property int open: modelData.open_issues
-                        property int closed: modelData.closed_issues
-                        property int total: open + closed
-                        property real closedRatio: closed / total
-                        Layout.fillHeight: true
-                        Layout.fillWidth: true
-                        color: Qt.rgba(0, 0, 0, 0.2)
-                        Rectangle {
-                            anchors {
-                                left: parent.left
-                                top: parent.top
-                                bottom: parent.bottom
-                            }
-                            color: Qt.rgba(0, 1, 0, 0.2)
-                            width: closedRatio * parent.width
-                        }
-                        Text {
-                            anchors {
-                                fill: parent
-                                margins: scalar * 0.02
-                            }
+            height: 1
 
-                            fontSizeMode: Text.Fit
-                            font.pixelSize: scalar * 0.4
-                            minimumPixelSize: 1
-                            text: modelData.title
-                            color: "white"
-                        }
+            Text {
+                anchors {
+                    fill: parent
+                    margins: scalar * 0.2
+                }
+                horizontalAlignment: Text.AlignHCenter
+                verticalAlignment: Text.AlignVCenter
+                font.pixelSize: scalar * 0.6
+                fontSizeMode: Text.Fit
+//                wrapMode: Text.WrapAtWordBoundaryOrAnywhere
+                color: "#dcdcdc"
 
-                        Text {
-                            anchors {
-                                fill: parent
-                                margins: scalar * 0.02
-                            }
+                text: modelData.name.split("/")[1]
+            }
+        }
 
-                            horizontalAlignment: Text.AlignRight
-                            fontSizeMode: Text.Fit
-                            font.pixelSize: scalar * 0.4
-                            minimumPixelSize: 1
-                            text: open + " of " + total
-                            color: "white"
-                        }
+        Repeater {
+            model: milestones
+            Item {
+                property int open: modelData.open_issues
+                property int closed: modelData.closed_issues
+                property int total: open + closed
+                property real closedRatio: closed / total
+                height: 1
+                Layout.fillHeight: true
+                Layout.fillWidth: true
+                Rectangle {
+                    anchors {
+                        left: parent.left
+                        top: parent.top
+                        bottom: parent.bottom
                     }
+                    color: Qt.rgba(0, 1, 0, 0.2)
+                    width: closedRatio * parent.width
+                }
+                Text {
+                    anchors {
+                        top: parent.top
+                        left: parent.left
+                        right: counter.left
+                        bottom: parent.bottom
+                        margins: scalar * 0.1
+                    }
+
+                    fontSizeMode: Text.Fit
+                    verticalAlignment: Text.AlignVCenter
+                    font.pixelSize: scalar * 0.4
+                    minimumPixelSize: 1
+                    text: modelData.title
+                    color: "white"
+                }
+
+                Text {
+                    id: counter
+                    anchors {
+                        top: parent.top
+                        right: parent.right
+                        bottom: parent.bottom
+                        margins: scalar * 0.1
+                    }
+
+                    horizontalAlignment: Text.AlignRight
+                    verticalAlignment: Text.AlignVCenter
+                    fontSizeMode: Text.Fit
+                    font.pixelSize: scalar * 0.4
+                    minimumPixelSize: 1
+                    text: closed + " of " + total
+                    color: "white"
                 }
             }
         }
+
+        Item {
+            height: 1
+            Layout.fillHeight: true
+            Layout.fillWidth: true
+        }
     }
+
+    states: [
+        State {
+            name: "secondary"
+            PropertyChanges {
+                target: mainLayout
+                opacity: 0
+            }
+            PropertyChanges {
+                target: secondaryLayout
+                opacity: 1
+            }
+        }
+    ]
+
+    transitions: [
+        Transition {
+            NumberAnimation {
+                property: "opacity"
+                duration: 1200
+                easing.type: Easing.InOutQuad
+            }
+        }
+    ]
 
     Text {
         anchors {
@@ -330,6 +397,21 @@ Item {
                 }
             }
         }
+    }
+
+    function toggleState() {
+        if(state == "secondary") {
+            state = ""
+        } else {
+            state = "secondary"
+        }
+    }
+
+    Timer {
+        running: milestones.length > 0
+        interval: 10 * 1000 + 1000 * Math.random()
+        repeat: true
+        onTriggered: toggleState()
     }
     
     Timer {
