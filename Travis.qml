@@ -4,4 +4,5 @@ import Qt.labs.settings 1.0
 
 QtObject {
     property string token
+    property string githubToken
 }

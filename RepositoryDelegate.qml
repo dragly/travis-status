@@ -15,11 +15,37 @@ Item {
     property string buildState: "unknown"
     property string authorEmail: "@"
     property string commitMessage: ""
+    property var milestones: []
 
     clip: true
-    
+
     Component.onCompleted: {
-        refresh()
+        quickRefreshTimer.start()
+    }
+
+    function refreshMilestones() {
+        var endpoint = "https://api.github.com/"
+        var req = new XMLHttpRequest()
+        req.onreadystatechange = function() {
+            if(req.readyState !== XMLHttpRequest.DONE) {
+                return
+            }
+            console.log("GitHub response on", modelData.name, req.responseText)
+            var result = JSON.parse(req.responseText)
+            if(!result.length) {
+                milestones = []
+                return
+            }
+            result.sort(function(a, b) {
+                return a.due_on > b.due_on ? 1 : -1
+            })
+            milestones = result
+        }
+        req.open("GET", endpoint + "repos/" + modelData.name + "/milestones?sort=due_on&direction=asc")
+        req.setRequestHeader("Accept", "application/vnd.github.v3+json")
+        req.setRequestHeader("Authorization", "token " + Travis.githubToken)
+        console.log("Authorization", "token " + Travis.githubToken)
+        req.send()
     }
 
     function refresh() {
@@ -56,6 +82,8 @@ Item {
             req.setRequestHeader("Authorization", "token " + Travis.token)
         }
         req.send()
+
+        refreshMilestones()
     }
     
     MouseArea {
@@ -216,6 +244,62 @@ Item {
 
                 //                    text: authorEmail.split("@")[0]
                 text: authorEmail + ': "' + commitMessage + '"'
+            }
+        }
+
+        Item {
+            Layout.fillHeight: true
+            Layout.fillWidth: true
+            ColumnLayout {
+                anchors.fill: parent
+                spacing: 0
+                Repeater {
+                    model: milestones
+                    Rectangle {
+                        property int open: modelData.open_issues
+                        property int closed: modelData.closed_issues
+                        property int total: open + closed
+                        property real closedRatio: closed / total
+                        Layout.fillHeight: true
+                        Layout.fillWidth: true
+                        color: Qt.rgba(0, 0, 0, 0.2)
+                        Rectangle {
+                            anchors {
+                                left: parent.left
+                                top: parent.top
+                                bottom: parent.bottom
+                            }
+                            color: Qt.rgba(0, 1, 0, 0.2)
+                            width: closedRatio * parent.width
+                        }
+                        Text {
+                            anchors {
+                                fill: parent
+                                margins: scalar * 0.02
+                            }
+
+                            fontSizeMode: Text.Fit
+                            font.pixelSize: scalar * 0.4
+                            minimumPixelSize: 1
+                            text: modelData.title
+                            color: "white"
+                        }
+
+                        Text {
+                            anchors {
+                                fill: parent
+                                margins: scalar * 0.02
+                            }
+
+                            horizontalAlignment: Text.AlignRight
+                            fontSizeMode: Text.Fit
+                            font.pixelSize: scalar * 0.4
+                            minimumPixelSize: 1
+                            text: open + " of " + total
+                            color: "white"
+                        }
+                    }
+                }
             }
         }
     }

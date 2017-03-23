@@ -16,6 +16,7 @@ ApplicationWindow {
     title: qsTr("Travis Status")
 
     property string travisToken
+    property string githubToken
     property var repositories: [
         {name: "CINPLA/exdir", private: false}
     ]
@@ -27,9 +28,14 @@ ApplicationWindow {
         Travis.token = travisToken
     }
 
+    onGithubTokenChanged: {
+        Travis.githubToken = githubToken
+    }
+
     Settings {
         property alias repositories: root.repositoriesString
         property alias token: root.travisToken
+        property alias githubToken: root.githubToken
     }
 
     onRepositoriesChanged: {
@@ -160,6 +166,26 @@ ApplicationWindow {
             text: "Generate token"
             onClicked: {
                 tokenDialog.open()
+            }
+        }
+
+        Label {
+            anchors.baseline: repoTextField.baseline
+            text: "GitHub token:"
+        }
+
+        TextField {
+            id: githubTokenText
+            text: root.githubToken
+            Binding {
+                target: root
+                property: "githubToken"
+                value: githubTokenText.text
+            }
+            Binding {
+                target: githubTokenText
+                property: "text"
+                value: root.githubToken
             }
         }
 
